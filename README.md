@@ -1,5 +1,15 @@
 # windowXP-keylogger
 
+# Operating System used
+Windows XP 
+
+# IDE Used
+Dev-C++ 5.11
+
+# Compile
+Be sure to compile with the following flag: 
+* -std=c++0x
+
 # Reference
 https://www.futurelearn.com/info/courses/computer-systems/0/steps/53503 (Keyboard overview)
 https://learn.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input (Keyboard input system)
