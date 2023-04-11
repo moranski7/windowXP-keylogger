@@ -1,4 +1,5 @@
 # windowXP-keylogger
+A simple windows keylogger. Creates a WH_KEYBOARD_LL hook which calls a callback function. The function get the virtual code for the key and records it in a file. This keylogger is able to record any keystroke regardless of window focus.
 
 ## Operating System used
 Windows XP 
@@ -9,6 +10,8 @@ Dev-C++ 5.11
 ## Compile
 Be sure to compile with the following flag: 
 * -std=c++0x
+Command: g++.exe main.cpp -o main.exe -m32 -std=c++0x -static-libgcc -m32
+
 
 ## Reference
 https://www.futurelearn.com/info/courses/computer-systems/0/steps/53503 (Keyboard overview)
